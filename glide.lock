@@ -1,0 +1,29 @@
+hash: cbc417d40cc0858d3fa22114d6e08b09125fb1c9f2bb77a0f68ba8311a2db817
+updated: 2017-05-20T17:10:59.257671083+01:00
+imports:
+- name: github.com/dave/jennifer
+  version: 107c2238b846cdfb7ee9b13c2f846c5989b9ae79
+  subpackages:
+  - jen
+- name: github.com/go-kit/kit
+  version: fadad6fffe0466b19df9efd9acde5c9a52df5fa4
+  subpackages:
+  - endpoint
+  - log
+  - metrics
+- name: github.com/go-logfmt/logfmt
+  version: 390ab7935ee28ec6b286364bba9b4dd6410cb3d5
+- name: github.com/go-stack/stack
+  version: 7a2f19628aabfe68f0766b59e74d6315f8347d22
+- name: github.com/jackwakefield/go-parser
+  version: cdb5ef545e66ca5bcd0bea6106974f53fe00a210
+- name: github.com/kr/logfmt
+  version: b84e30acd515aadc4b783ad4ff83aff3299bdfe0
+- name: github.com/urfave/cli
+  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
+- name: golang.org/x/tools
+  version: bf4b54dc687c73b6ef63de8b8abf0ad3951e3edc
+  subpackages:
+  - go/ast/astutil
+  - imports
+testImports: []

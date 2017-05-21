@@ -16,7 +16,7 @@ projects:
   test: false
   bin: true
   build: false
-  run: true
+  run: false
   watcher:
     preview: false
     paths:

@@ -1,2 +1,14 @@
 package: github.com/jackwakefield/go-kit-fabricate
-import: []
+import:
+- package: github.com/go-kit/kit
+  version: ^0.4.0
+- package: github.com/urfave/cli
+  version: ^1.19.1
+- package: github.com/dave/jennifer
+  version: ^0.13.0
+- package: github.com/go-stack/stack
+  version: ^1.5.3
+- package: golang.org/x/tools
+  subpackages:
+  - imports
+- package: github.com/jackwakefield/go-parser
