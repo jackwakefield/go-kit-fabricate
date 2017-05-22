@@ -1,8 +1,6 @@
 package generator
 
 import (
-	"fmt"
-
 	"github.com/dave/jennifer/jen"
 	"github.com/jackwakefield/go-kit-fabricate/pkg/service"
 )
@@ -34,12 +32,12 @@ func (g *instrumentingGenerator) generate(file *jen.File) error {
 }
 
 func (g *instrumentingGenerator) generateStruct(file *jen.File) error {
-	file.Type().Id("serviceInstrumentingMiddleware").StructFunc(func(g *jen.Group) {
-		g.Id("requestCount").Id("metrics.Counter")
-		g.Id("errorCount").Id("metrics.Counter")
-		g.Id("requestLatency").Id("metrics.Histogram")
-		g.Id("next").Id("Service")
-	})
+	file.Type().Id("serviceInstrumentingMiddleware").Struct(
+		jen.Id("requestCount").Qual("github.com/go-kit/kit/metrics", "Counter"),
+		jen.Id("errorCount").Qual("github.com/go-kit/kit/metrics", "Counter"),
+		jen.Id("requestLatency").Qual("github.com/go-kit/kit/metrics", "Histogram"),
+		jen.Id("next").Id("Service"),
+	)
 
 	return nil
 }
@@ -48,8 +46,8 @@ func (g *instrumentingGenerator) generateConstructor(file *jen.File) error {
 	file.Func().Id("ServiceIntrumentingMiddleware").
 		Params(
 			jen.Id("requestCount"),
-			jen.Id("errorCount").Id("metrics.Counter"),
-			jen.Id("requestLatency").Id("metrics.Histogram")).
+			jen.Id("errorCount").Qual("github.com/go-kit/kit/metrics", "Counter"),
+			jen.Id("requestLatency").Qual("github.com/go-kit/kit/metrics", "Histogram")).
 		Id("Middleware").
 		Block(
 			jen.Return(
@@ -92,24 +90,29 @@ func (g *instrumentingGenerator) generateMethods(file *jen.File) error {
 				g.Defer().Func().
 					Params(jen.Id("begin").Id("time.Time")).
 					BlockFunc(func(g *jen.Group) {
-						g.Id("mw.requestCount.With").Call(jen.Lit("method"), jen.Lit(method.Name())).
+						g.Id("mw").Dot("requestCount").Dot("With").
+							Call(jen.Lit("method"), jen.Lit(method.Name())).
 							Dot("Add").Call(jen.Lit(1))
 
-						g.Id("mw.requestLatency.With").Call(jen.Lit("method"), jen.Lit(method.Name())).
+						g.Id("mw").Dot("requestLatency").Dot("With").
+							Call(jen.Lit("method"), jen.Lit(method.Name())).
 							Dot("Observe").Call(jen.Id("time.Since").Call(jen.Id("begin")).Dot("Seconds").Call())
 
 						if errorResult := method.ErrorResult(); errorResult != nil {
 							g.If(jen.Id(errorResult.Name()).Op("!=").Nil()).
-								Block(jen.Id("mw.errorCount.With").Call(jen.Lit("method"), jen.Lit(method.Name())).
+								Block(jen.Id("mw").Dot("errorCount").Dot("With").
+									Call(jen.Lit("method"), jen.Lit(method.Name())).
 									Dot("Add").Call(jen.Lit(1)))
 						}
 					}).
-					Call(jen.Id("time.Now").Call()).Line().
-					Return().Id(fmt.Sprintf("mw.next.%s", method.Name())).CallFunc(func(g *jen.Group) {
-					for _, param := range method.Params() {
-						g.Id(param.Name())
-					}
-				})
+					Call(jen.Qual("time", "Now").Call())
+				g.Return(
+					jen.Id("mw").Dot("next").Dot(method.Name()).CallFunc(func(g *jen.Group) {
+						for _, param := range method.Params() {
+							g.Id(param.Name())
+						}
+					}),
+				)
 			})
 	}
 
