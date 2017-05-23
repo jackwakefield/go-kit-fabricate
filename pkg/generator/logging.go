@@ -1,8 +1,6 @@
 package generator
 
 import (
-	"fmt"
-
 	"github.com/dave/jennifer/jen"
 	"github.com/jackwakefield/go-kit-fabricate/pkg/service"
 )
@@ -87,8 +85,8 @@ func (g *loggingGenerator) generateMethods(file *jen.File) error {
 			BlockFunc(func(g *jen.Group) {
 				g.Defer().Func().
 					Params(jen.Id("begin").Id("time.Time")).
-					BlockFunc(func(g *jen.Group) {
-						g.Id("mw.logger.Log").CallFunc(func(g *jen.Group) {
+					Block(
+						jen.Id("mw.logger.Log").CallFunc(func(g *jen.Group) {
 							g.Lit("method")
 							g.Lit(method.Name())
 
@@ -101,14 +99,16 @@ func (g *loggingGenerator) generateMethods(file *jen.File) error {
 									g.Id(result.Name())
 								}
 							}
-						})
-					}).
-					Call(jen.Id("time.Now").Call()).Line().
-					Return().Id(fmt.Sprintf("mw.next.%s", method.Name())).CallFunc(func(g *jen.Group) {
-					for _, param := range method.Params() {
-						g.Id(param.Name())
-					}
-				})
+						}),
+					).
+					Call(jen.Id("time.Now").Call())
+				g.Return(
+					jen.Id("mw").Dot("next").Dot(method.Name()).CallFunc(func(g *jen.Group) {
+						for _, param := range method.Params() {
+							g.Id(param.Name())
+						}
+					}),
+				)
 			})
 	}
 

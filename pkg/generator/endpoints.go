@@ -106,8 +106,8 @@ func (g *endpointsGenerator) generateEndpoints(file *jen.File) error {
 						g.Id("request")
 					})
 
-				g.If(jen.Err()).Op("!=").Nil().BlockFunc(func(g *jen.Group) {
-					g.Return(jen.ListFunc(func(g *jen.Group) {
+				g.If(jen.Err().Op("!=").Nil()).Block(
+					jen.ReturnFunc(func(g *jen.Group) {
 						for _, result := range method.Results() {
 							if result.IsErr() {
 								g.Err()
@@ -115,14 +115,14 @@ func (g *endpointsGenerator) generateEndpoints(file *jen.File) error {
 								g.Id(result.ZeroValue())
 							}
 						}
-					}))
-				})
+					}),
+				)
 
-				g.Return(jen.ListFunc(func(g *jen.Group) {
+				g.ReturnFunc(func(g *jen.Group) {
 					for _, result := range method.Results() {
 						g.Id("response").Assert(jen.Id(responseName)).Dot(result.GlobalName())
 					}
-				}))
+				})
 			}).
 			Line()
 
@@ -199,20 +199,20 @@ func (g *endpointsGenerator) generateMiddleware(file *jen.File) error {
 					jen.Id("response").Interface(),
 					jen.Err().Error(),
 				).
-				BlockFunc(func(g *jen.Group) {
-					g.Defer().
+				Block(
+					jen.Defer().
 						Func().
 						Params(jen.Id("begin").Qual("time", "Time")).
-						BlockFunc(func(g *jen.Group) {
-							g.Id("duration").
+						Block(
+							jen.Id("duration").
 								Dot("With").Call(jen.Lit("success"), jen.Qual("fmt", "Sprint").Call(jen.Id("err").Op("==").Nil())).
-								Dot("Observe").Call(jen.Qual("time", "Since").Call(jen.Id("begin")).Dot("Seconds").Call())
-						}).
+								Dot("Observe").Call(jen.Qual("time", "Since").Call(jen.Id("begin")).Dot("Seconds").Call()),
+						).
 						Call(jen.Qual("time", "Now").Call()).
-						Line()
+						Line(),
 
-					g.Return(jen.Id("next").Call(jen.Id("ctx"), jen.Id("request")))
-				}),
+					jen.Return(jen.Id("next").Call(jen.Id("ctx"), jen.Id("request"))),
+				),
 			),
 		).
 		Line()
@@ -233,25 +233,24 @@ func (g *endpointsGenerator) generateMiddleware(file *jen.File) error {
 					jen.Id("response").Interface(),
 					jen.Err().Error(),
 				).
-				BlockFunc(func(g *jen.Group) {
-					g.Defer().
+				Block(
+					jen.Defer().
 						Func().
 						Params(jen.Id("begin").Qual("time", "Time")).
-						BlockFunc(func(g *jen.Group) {
-							g.Id("logger").
+						Block(
+							jen.Id("logger").
 								Dot("Log").
 								Call(
 									jen.Lit("error"),
 									jen.Id("err"),
 									jen.Lit("took"),
 									jen.Qual("time", "Since").Call(jen.Id("begin")),
-								)
-						}).
+								),
+						).
 						Call(jen.Qual("time", "Now").Call()).
-						Line()
-
-					g.Return(jen.Id("next").Call(jen.Id("ctx"), jen.Id("request")))
-				}),
+						Line(),
+					jen.Return(jen.Id("next").Call(jen.Id("ctx"), jen.Id("request"))),
+				),
 			),
 		).
 		Line()
